@@ -1,0 +1,83 @@
+version: '3'
+
+services:
+  database:
+    image: mysql:${MYSQL_VERSION:-8.0}
+    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_database
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    env_file:
+      - ./.env
+    volumes:
+      - ${MYSQL_DATA:-./data/mysql}:/var/lib/mysql
+    networks:
+      - nextjs_wp
+
+  phpmyadmin:
+    container_name: ${COMPOSE_PROJECT_NAME}_phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    env_file:
+      - ./.env
+    links:
+      - database
+    ports:
+      - 8080:80
+    depends_on:
+      - database
+    networks:
+      - nextjs_wp
+
+  wordpress:
+    image: wordpress:${WORDPRESS_VERSION:-6.2.2-fpm-alpine}
+    container_name: ${COMPOSE_PROJECT_NAME}_wordpress
+    restart: unless-stopped
+    ports:
+      - 9000:80
+    environment:
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    links:
+      - database
+    depends_on:
+      - database
+    volumes:
+      - ${WORDPRESS_DATA:-./backend}:/var/www/html
+    networks:
+      - nextjs_wp
+
+  next-app:
+    container_name: next-app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+    ports:
+      - 3000:3000
+    volumes:
+      - ${NEXT_DATA:-./frontend}:/usr/src/app
+    depends_on:
+      - database
+      - wordpress
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - nextjs_wp
+
+networks:
+  nextjs_wp:
+    driver: bridge
+volumes:
+  data:
