@@ -2,32 +2,25 @@ version: '3'
 
 services:
   database:
-    image: mysql:${MYSQL_VERSION:-8.0}
+    image: mysql:${MYSQL_VERSION:-latest}
     container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_database
-    restart: unless-stopped
-    ports:
-      - 3306:3306
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-    env_file:
-      - ./.env
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppassword
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
-      - ${MYSQL_DATA:-./data/mysql}:/var/lib/mysql
+      - ${MYSQL_DATA:-./db_data}:/var/lib/mysql
     networks:
       - nextjs_wp
 
   phpmyadmin:
-    container_name: ${COMPOSE_PROJECT_NAME}_phpmyadmin
+    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_phpmyadmin
     image: phpmyadmin/phpmyadmin
     environment:
-      PMA_HOST: db
+      PMA_HOST: database
       PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-    env_file:
-      - ./.env
     links:
       - database
     ports:
@@ -38,24 +31,34 @@ services:
       - nextjs_wp
 
   wordpress:
-    image: wordpress:${WORDPRESS_VERSION:-6.2.2-fpm-alpine}
-    container_name: ${COMPOSE_PROJECT_NAME}_wordpress
-    restart: unless-stopped
+    image: wordpress:${WORDPRESS_VERSION:-latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_wordpress
+    restart: always
     ports:
       - 9000:80
     environment:
-      WORDPRESS_DB_HOST: database:3306
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_HOST: database
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppassword
       WORDPRESS_DB_NAME: wordpress
-    links:
-      - database
     depends_on:
       - database
     volumes:
       - ${WORDPRESS_DATA:-./backend}:/var/www/html
     networks:
       - nextjs_wp
+  nginx:
+    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_nginx
+    image: nginx
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - wordpress
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./backend:/var/www/html
 
   next-app:
     container_name: next-app
@@ -72,7 +75,7 @@ services:
       - database
       - wordpress
     command: npm run dev
-    restart: unless-stopped
+    restart: always
     networks:
       - nextjs_wp
 
@@ -80,4 +83,5 @@ networks:
   nextjs_wp:
     driver: bridge
 volumes:
-  data:
+  db_data:
+  backend:
