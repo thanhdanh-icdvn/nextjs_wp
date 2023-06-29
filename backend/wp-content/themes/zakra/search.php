@@ -11,7 +11,7 @@ get_header();
 ?>
 
 	<section id="primary" class="content-area">
-		<?php echo apply_filters( 'zakra_after_primary_start_filter', false ); // WPCS: XSS OK. ?>
+		<?php echo apply_filters( 'zakra_after_pzrimary_start_filter', false ); // WPCS: XSS OK. ?>
 
 		<?php if ( have_posts() ) : ?>
 
