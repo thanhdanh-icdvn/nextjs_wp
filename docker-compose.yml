@@ -3,7 +3,7 @@ version: '3'
 services:
   database:
     image: mysql:${MYSQL_VERSION:-latest}
-    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_database
+    container_name: ${COMPOSE_PROJECT_NAME}_database
     restart: always
     environment:
       MYSQL_DATABASE: wordpress
@@ -16,7 +16,7 @@ services:
       - nextjs_wp
 
   phpmyadmin:
-    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_phpmyadmin
+    container_name: ${COMPOSE_PROJECT_NAME}_phpmyadmin
     image: phpmyadmin/phpmyadmin
     environment:
       PMA_HOST: database
@@ -32,7 +32,7 @@ services:
 
   wordpress:
     image: wordpress:${WORDPRESS_VERSION:-latest}
-    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_wordpress
+    container_name: ${COMPOSE_PROJECT_NAME}_wordpress
     restart: always
     ports:
       - 9000:80
@@ -48,7 +48,7 @@ services:
     networks:
       - nextjs_wp
   nginx:
-    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_nginx
+    container_name: ${COMPOSE_PROJECT_NAME}_nginx
     image: nginx
     restart: always
     ports:
@@ -61,7 +61,7 @@ services:
       - ./backend:/var/www/html
 
   next-app:
-    container_name: next-app
+    container_name: ${COMPOSE_PROJECT_NAME:-icd-vn}_next-app
     build:
       context: ./frontend
       dockerfile: Dockerfile

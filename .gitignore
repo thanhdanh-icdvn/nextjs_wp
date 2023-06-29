@@ -55,3 +55,6 @@ db_data
 /dist
 /node_modules
 /plugins
+.env
+.env.prod*
+.env.*.local
