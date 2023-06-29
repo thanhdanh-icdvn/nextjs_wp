@@ -44,7 +44,7 @@ services:
     depends_on:
       - database
     volumes:
-      - ${WORDPRESS_DATA:-./backend}:/var/www/html:rw
+      - ${WORDPRESS_DATA:-./backend}:/var/www/html
     networks:
       - nextjs_wp
   nginx:
@@ -82,5 +82,3 @@ services:
 networks:
   nextjs_wp:
     driver: bridge
-volumes:
-  db_data:
