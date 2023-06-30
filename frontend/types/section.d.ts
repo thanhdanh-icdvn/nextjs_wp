@@ -1,0 +1,3 @@
+type SectionProps = {
+  children: ReactNode
+}
